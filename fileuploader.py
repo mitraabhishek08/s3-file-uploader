@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import boto3
 from botocore.exceptions import NoCredentialsError
 
@@ -12,24 +13,59 @@ s3 = boto3.client('s3',
                   aws_access_key_id=AWS_ACCESS_KEY,
                   aws_secret_access_key=AWS_SECRET_KEY)
 
-
-def copy_button(url, key):
-    # Use Streamlit columns for layout
-    col1, col2 = st.columns([5, 1])
-    with col1:
-        st.text_input(f"Image URL", value=url, key=f"url_{key}", disabled=True)
-    with col2:
-        if st.button("Copy", key=f"copy_{key}"):
-            st.experimental_set_query_params()  # workaround to trigger rerun before JS
-            st.toast("Copied to clipboard!", icon="✅")
-            # Use Streamlit's clipboard copy with JS through components
-            js = f"""
-            <script>
-            navigator.clipboard.writeText("{url}");
-            </script>
-            """
-            st.components.v1.html(js)
-            
+def copy_button(url: str, idx: int):
+    # HTML + JS button that copies to clipboard and shows a small "Copied!" message
+    button_html = f"""
+    <style>
+        .copy-container {{
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }}
+        .copy-input {{
+            width: 90%;
+            padding: 6px 8px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-right: 8px;
+        }}
+        .copy-btn {{
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            text-align: center;
+            text-decoration: none;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }}
+        .copy-btn:hover {{
+            background-color: #45a049;
+        }}
+        .copied-msg {{
+            color: #4CAF50;
+            font-weight: bold;
+            margin-left: 10px;
+            display: none;
+            user-select: none;
+        }}
+    </style>
+    <div class="copy-container">
+        <input class="copy-input" type="text" value="{url}" id="copyInput{idx}" readonly />
+        <button class="copy-btn" onclick="
+            const copyText = document.getElementById('copyInput{idx}');
+            navigator.clipboard.writeText(copyText.value);
+            const msg = document.getElementById('copiedMsg{idx}');
+            msg.style.display = 'inline';
+            setTimeout(() => {{ msg.style.display = 'none'; }}, 2000);
+        ">Copy</button>
+        <span id="copiedMsg{idx}" class="copied-msg">Copied!</span>
+    </div>
+    """
+    components.html(button_html, height=50)
 
 def upload_to_s3(file, key):
     try:
@@ -41,7 +77,6 @@ def upload_to_s3(file, key):
     except Exception as e:
         st.error(f"Failed to upload {key}: {e}")
         return False
-
 
 def main():
     st.title("Image Uploader to S3 Bucket")
@@ -56,7 +91,6 @@ def main():
     )
 
     if st.button("Upload"):
-        # Check mandatory folder name
         if not folder_name:
             st.error("Please enter a valid folder name.")
             return
@@ -67,7 +101,6 @@ def main():
 
         urls = []
         for file in uploaded_files:
-            # Create S3 key as abmitra/folder_name/filename
             s3_key = f"{BASE_FOLDER}/{folder_name}/{file.name}"
             success = upload_to_s3(file, s3_key)
             if success:
@@ -79,7 +112,6 @@ def main():
             st.write("Final URLs:")
             for idx, url in enumerate(urls):
                 copy_button(url, idx)
-
 
 if __name__ == "__main__":
     main()
