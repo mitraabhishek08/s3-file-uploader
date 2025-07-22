@@ -100,7 +100,7 @@ def main():
     # List folders in sidebar (no selection, just a list)
     existing_folders = list_s3_folders(BUCKET_NAME, BASE_FOLDER)
 
-    st.sidebar.markdown("### Existing folders under 'abmitra/'")
+    st.sidebar.markdown("### Existing folders")
 
     if existing_folders:
         for folder in existing_folders:
