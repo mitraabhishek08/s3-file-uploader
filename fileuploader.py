@@ -79,6 +79,18 @@ def upload_to_s3(file, key):
 def main():
     st.title("Image Uploader to S3 Bucket")
 
+    st.sidebar.markdown("---")  # Horizontal separator in sidebar
+
+    st.sidebar.markdown(
+        """
+        **Contact:**  
+        For any questions or feedback, please email me at  
+        <a href="mailto:abmitra@informatica.com">abmitra@informatica.com</a>
+        """,
+        unsafe_allow_html=True
+)
+
+
     # Mandatory folder input
     folder_name = st.text_input(f"Folder name under '{BUCKET_NAME}/{BASE_FOLDER}' (required):").strip()
 
