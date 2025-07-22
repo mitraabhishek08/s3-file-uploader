@@ -1,7 +1,7 @@
 import streamlit as st
 import streamlit.components.v1 as components
 import boto3
-from botocore.exceptions import NoCredentialsError
+from botocore.exceptions import NoCredentialsError, ClientError
 
 AWS_ACCESS_KEY = st.secrets["AWS_ACCESS_KEY_ID"]
 AWS_SECRET_KEY = st.secrets["AWS_SECRET_ACCESS_KEY"]
@@ -12,6 +12,25 @@ CLOUDFRONT_URL_PREFIX = 'https://d1zuq1scot7wwi.cloudfront.net/'
 s3 = boto3.client('s3',
                   aws_access_key_id=AWS_ACCESS_KEY,
                   aws_secret_access_key=AWS_SECRET_KEY)
+
+def list_s3_folders(bucket, prefix):
+    """List 'folders' (common prefixes) under an S3 prefix."""
+    try:
+        response = s3.list_objects_v2(
+            Bucket=bucket,
+            Prefix=prefix + '/',
+            Delimiter='/'
+        )
+    except ClientError as e:
+        st.sidebar.error(f"Failed to list folders: {e}")
+        return []
+
+    folders = []
+    if 'CommonPrefixes' in response:
+        for cp in response['CommonPrefixes']:
+            folder_name = cp['Prefix'].rstrip('/').split('/')[-1]  # get folder name before trailing slash
+            folders.append(folder_name)
+    return folders
 
 def copy_button(url: str, idx: int):
     button_html = f"""
@@ -64,7 +83,6 @@ def copy_button(url: str, idx: int):
     """
     components.html(button_html, height=50)
 
-
 def upload_to_s3(file, key):
     try:
         s3.upload_fileobj(file, BUCKET_NAME, key)
@@ -79,8 +97,16 @@ def upload_to_s3(file, key):
 def main():
     st.title("Image Uploader to S3 Bucket")
 
-    st.sidebar.markdown("---")  # Horizontal separator in sidebar
+    # Sidebar folder listing
+    st.sidebar.markdown("### Existing folders under 'abmitra/'")
+    existing_folders = list_s3_folders(BUCKET_NAME, BASE_FOLDER)
+    if existing_folders:
+        for folder in existing_folders:
+            st.sidebar.write(f"- {folder}")
+    else:
+        st.sidebar.write("No folders found.")
 
+    st.sidebar.markdown("---")  # Horizontal separator in sidebar
     st.sidebar.markdown(
         """
         **Contact:**  
@@ -88,13 +114,15 @@ def main():
         <a href="mailto:abmitra@informatica.com">abmitra@informatica.com</a>
         """,
         unsafe_allow_html=True
-)
+    )
 
-
-    # Mandatory folder input
-    folder_name = st.text_input(label="Enter folder name (*):",
-    help=f"This folder will be created under '{BUCKET_NAME}/{BASE_FOLDER}'",
-    key="folder_name_input").strip()
+    # Folder input field with tooltip and info
+    folder_name = st.text_input(
+        label="Enter folder name (*):",
+        help=f"This folder will be created under '{BUCKET_NAME}/{BASE_FOLDER}'. It will reuse an existing folder if present, or create a new one.",
+        key="folder_name_input"
+    ).strip()
+    
     st.info("This folder name will reuse an existing folder if present, or create a new one.")
 
     uploaded_files = st.file_uploader(
