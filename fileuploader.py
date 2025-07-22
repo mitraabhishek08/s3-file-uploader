@@ -1,5 +1,4 @@
 import streamlit as st
-import streamlit.components.v1 as components
 import boto3
 from botocore.exceptions import NoCredentialsError
 
@@ -13,18 +12,24 @@ s3 = boto3.client('s3',
                   aws_access_key_id=AWS_ACCESS_KEY,
                   aws_secret_access_key=AWS_SECRET_KEY)
 
+
 def copy_button(url, key):
-    button_html = f"""
-    <div style="display: flex; align-items: center;">
-        <input type="text" value="{url}" id="input_{key}" readonly style="width:80%; margin-right: 10px;"/>
-        <button onclick="
-            navigator.clipboard.writeText(document.getElementById('input_{key}').value);
-            this.innerText='Copied!';
-            setTimeout(() => {{ this.innerText='Copy'; }}, 2000);
-        ">Copy</button>
-    </div>
-    """
-    components.html(button_html, height=40)
+    # Use Streamlit columns for layout
+    col1, col2 = st.columns([5, 1])
+    with col1:
+        st.text_input(f"Image URL", value=url, key=f"url_{key}", disabled=True)
+    with col2:
+        if st.button("Copy", key=f"copy_{key}"):
+            st.experimental_set_query_params()  # workaround to trigger rerun before JS
+            st.toast("Copied to clipboard!", icon="✅")
+            # Use Streamlit's clipboard copy with JS through components
+            js = f"""
+            <script>
+            navigator.clipboard.writeText("{url}");
+            </script>
+            """
+            st.components.v1.html(js)
+            
 
 def upload_to_s3(file, key):
     try:
@@ -37,12 +42,13 @@ def upload_to_s3(file, key):
         st.error(f"Failed to upload {key}: {e}")
         return False
 
+
 def main():
     st.title("Image Uploader to S3 Bucket")
 
     # Mandatory folder input
     folder_name = st.text_input(f"Folder name under '{BUCKET_NAME}/{BASE_FOLDER}' (required):").strip()
-    
+
     uploaded_files = st.file_uploader(
         "Upload one or more images",
         type=['png', 'jpg', 'jpeg', 'gif', 'bmp'],
@@ -54,7 +60,7 @@ def main():
         if not folder_name:
             st.error("Please enter a valid folder name.")
             return
-        
+
         if not uploaded_files:
             st.warning("Please upload at least one image before clicking Upload.")
             return
@@ -72,7 +78,8 @@ def main():
             st.success("Upload completed!")
             st.write("Final URLs:")
             for idx, url in enumerate(urls):
-                copy_button(url, idx)  
+                copy_button(url, idx)
+
 
 if __name__ == "__main__":
     main()
