@@ -80,11 +80,7 @@ def main():
     st.title("Image Uploader to S3 Bucket")
 
     # Mandatory folder input
-    folder_label = f"Folder name under '{BUCKET_NAME}/{BASE_FOLDER}' <span style='color:red;'>*</span>"
-
-    folder_name = st.text_input(label="", placeholder=folder_label, key="folder_name_input").strip()
-
-
+    folder_name = st.text_input(f"Folder name under '{BUCKET_NAME}/{BASE_FOLDER}' (required):").strip()
 
     uploaded_files = st.file_uploader(
         "Upload one or more images",
