@@ -92,8 +92,8 @@ def main():
 
 
     # Mandatory folder input
-    folder_name = st.text_input(label=f"Folder name under '{BUCKET_NAME}/{BASE_FOLDER}'",
-    help="This folder name will reuse an existing folder if present, or create a new one.",
+    folder_name = st.text_input(label="Enter folder name:",
+    help=f"This folder will be created under '{BUCKET_NAME}/{BASE_FOLDER}'",
     key="folder_name_input").strip()
     st.info("This folder name will reuse an existing folder if present, or create a new one.")
 
