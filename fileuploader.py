@@ -150,10 +150,16 @@ def main():
                 urls.append(url)
 
         if urls:
-            st.success("Upload completed!")
-            st.write("Final URLs:")
-            for idx, url in enumerate(urls):
-                copy_button(url, idx)
+          st.success("Upload completed!")
+          st.write("Final URLs:")
+
+          for idx, url in enumerate(urls):
+              col1, col2 = st.columns([1, 5])  # Small column for thumbnail, bigger for URL + copy button
+              with col1:
+                  st.image(url, width=60)  # Display thumbnail with width ~60 px
+              with col2:
+                  copy_button(url, idx)
+
 
 if __name__ == "__main__":
     main()
