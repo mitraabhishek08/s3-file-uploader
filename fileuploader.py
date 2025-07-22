@@ -97,26 +97,17 @@ def upload_to_s3(file, key):
 def main():
     st.title("S3 Media Manager")
 
-    # Get list of existing folders
+    # List folders in sidebar (no selection, just a list)
     existing_folders = list_s3_folders(BUCKET_NAME, BASE_FOLDER)
 
     st.sidebar.markdown("### Existing folders under 'abmitra/'")
 
-    # Add blank option to allow entering new folder manually
-    folder_options = [""] + existing_folders
+    if existing_folders:
+        for folder in existing_folders:
+            st.sidebar.write(f"- {folder}")
+    else:
+        st.sidebar.write("No folders found.")
 
-    # Sidebar folder selectbox with session state key to avoid double-selection issue
-    selected_folder = st.sidebar.selectbox(
-        "Select an existing folder (or leave blank to create new):",
-        folder_options,
-        key="selected_folder"
-    )
-
-    # Sync folder_name_input to selected_folder whenever changed
-    if "folder_name_input" not in st.session_state or st.session_state.folder_name_input != st.session_state.selected_folder:
-        st.session_state.folder_name_input = st.session_state.selected_folder
-
-    # Sidebar contact info
     st.sidebar.markdown("---")
     st.sidebar.markdown(
         """
@@ -127,10 +118,8 @@ def main():
         unsafe_allow_html=True
     )
 
-    # Folder name input field (auto-filled but editable)
     folder_name = st.text_input(
         label="Enter folder name (*):",
-        value=st.session_state.folder_name_input,
         help=f"This folder will be created under '{BUCKET_NAME}/{BASE_FOLDER}'. It will reuse an existing folder if present, or create a new one.",
         key="folder_name_input"
     ).strip()
