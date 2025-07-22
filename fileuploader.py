@@ -28,7 +28,7 @@ def list_s3_folders(bucket, prefix):
     folders = []
     if 'CommonPrefixes' in response:
         for cp in response['CommonPrefixes']:
-            folder_name = cp['Prefix'].rstrip('/').split('/')[-1]  # get folder name before trailing slash
+            folder_name = cp['Prefix'].rstrip('/').split('/')[-1]
             folders.append(folder_name)
     return folders
 
@@ -97,16 +97,32 @@ def upload_to_s3(file, key):
 def main():
     st.title("Image Uploader to S3 Bucket")
 
-    # Sidebar folder listing
-    st.sidebar.markdown("### Existing folders under 'abmitra/'")
+    # Get list of existing folders
     existing_folders = list_s3_folders(BUCKET_NAME, BASE_FOLDER)
-    if existing_folders:
-        for folder in existing_folders:
-            st.sidebar.write(f"- {folder}")
-    else:
-        st.sidebar.write("No folders found.")
 
-    st.sidebar.markdown("---")  # Horizontal separator in sidebar
+    st.sidebar.markdown("### Existing folders under 'abmitra/'")
+
+    # Add blank option to allow entering new folder manually
+    folder_options = [""] + existing_folders
+
+    # Initialize session state variable if not present
+    if "selected_folder" not in st.session_state:
+        st.session_state.selected_folder = ""
+
+    # Folder selector in sidebar
+    selected_folder = st.sidebar.selectbox(
+        "Select an existing folder (or leave blank to create new):",
+        folder_options,
+        index=folder_options.index(st.session_state.selected_folder) if st.session_state.selected_folder in folder_options else 0
+    )
+
+    # Update session state if changed
+    if selected_folder != st.session_state.selected_folder:
+        st.session_state.selected_folder = selected_folder
+        # To immediately reflect change in text_input, we can rerun or rely on session state
+
+    # Sidebar contact info
+    st.sidebar.markdown("---")
     st.sidebar.markdown(
         """
         **Contact:**  
@@ -116,13 +132,14 @@ def main():
         unsafe_allow_html=True
     )
 
-    # Folder input field with tooltip and info
+    # Folder name input auto-filled from selected folder, user can also overwrite it
     folder_name = st.text_input(
         label="Enter folder name (*):",
+        value=st.session_state.selected_folder,
         help=f"This folder will be created under '{BUCKET_NAME}/{BASE_FOLDER}'. It will reuse an existing folder if present, or create a new one.",
         key="folder_name_input"
     ).strip()
-    
+
     st.info("This folder name will reuse an existing folder if present, or create a new one.")
 
     uploaded_files = st.file_uploader(
