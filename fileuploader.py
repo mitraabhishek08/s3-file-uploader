@@ -124,7 +124,7 @@ def main():
         key="folder_name_input"
     ).strip()
 
-    st.info("_This folder name will reuse an existing folder if present, or create a new one._")
+    st.info("_This folder name will reuse an existing folder if present, or create a new one. If you are going to use the generated url(s) with URL type field, make sure not to use any space in the folder name and/or uploade image name._")
 
     uploaded_files = st.file_uploader(
         "Upload one or more images",
