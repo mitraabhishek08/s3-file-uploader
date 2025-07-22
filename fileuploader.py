@@ -95,7 +95,7 @@ def upload_to_s3(file, key):
         return False
 
 def main():
-    st.title("Image Uploader to S3 Bucket")
+    st.title("S3 Media Manager")
 
     # Get list of existing folders
     existing_folders = list_s3_folders(BUCKET_NAME, BASE_FOLDER)
