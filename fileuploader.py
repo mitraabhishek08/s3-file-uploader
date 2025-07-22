@@ -93,7 +93,7 @@ def main():
 
     # Mandatory folder input
     folder_name = st.text_input(f"Folder name under '{BUCKET_NAME}/{BASE_FOLDER}' (required):").strip()
-    st.caption("This folder name will reuse an existing folder if present, or create a new one.")
+    st.info("This folder name will reuse an existing folder if present, or create a new one.")
 
     uploaded_files = st.file_uploader(
         "Upload one or more images",
