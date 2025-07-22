@@ -104,7 +104,7 @@ def main():
 
     if existing_folders:
         for folder in existing_folders:
-            st.sidebar.write(f"- {folder}")
+            st.sidebar.markdown(f"<span style='color: #1E90FF;'>📁 {folder}</span>", unsafe_allow_html=True)
     else:
         st.sidebar.write("No folders found.")
 
