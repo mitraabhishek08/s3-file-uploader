@@ -14,7 +14,6 @@ s3 = boto3.client('s3',
                   aws_secret_access_key=AWS_SECRET_KEY)
 
 def copy_button(url: str, idx: int):
-    # HTML + JS button that copies to clipboard and shows a small "Copied!" message
     button_html = f"""
     <style>
         .copy-container {{
@@ -35,8 +34,6 @@ def copy_button(url: str, idx: int):
             border: none;
             color: white;
             padding: 6px 12px;
-            text-align: center;
-            text-decoration: none;
             font-size: 14px;
             border-radius: 4px;
             cursor: pointer;
@@ -47,7 +44,7 @@ def copy_button(url: str, idx: int):
         }}
         .copied-msg {{
             color: #4CAF50;
-            font-weight: bold;
+            font-weight: 600;
             margin-left: 10px;
             display: none;
             user-select: none;
@@ -66,6 +63,7 @@ def copy_button(url: str, idx: int):
     </div>
     """
     components.html(button_html, height=50)
+
 
 def upload_to_s3(file, key):
     try:
