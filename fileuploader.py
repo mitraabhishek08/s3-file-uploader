@@ -84,7 +84,7 @@ def main():
       f"Folder name under '{BUCKET_NAME}/{BASE_FOLDER}' <span style='color:red;'>*</span>",
       unsafe_allow_html=True
 )
-folder_name = st.text_input("", key="folder_name_input").strip()
+    folder_name = st.text_input("", key="folder_name_input").strip()
 
     uploaded_files = st.file_uploader(
         "Upload one or more images",
