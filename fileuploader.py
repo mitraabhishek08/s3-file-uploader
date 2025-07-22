@@ -81,7 +81,7 @@ def main():
 
     # Mandatory folder input
     st.markdown(
-      f"Folder name under '{BUCKET_NAME}/{BASE_FOLDER}' <span style='color:red;'>*</span>",
+      f"Folder name under '{BUCKET_NAME}/{BASE_FOLDER}' (<span style='color:red;'>*</span>)",
       unsafe_allow_html=True
 )
     folder_name = st.text_input("", key="folder_name_input").strip()
