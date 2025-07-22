@@ -80,13 +80,10 @@ def main():
     st.title("Image Uploader to S3 Bucket")
 
     # Mandatory folder input
-    st.markdown(f"""
-    <div style='margin-bottom: 4px; font-weight: 600;'>
-        Folder name under '{BUCKET_NAME}/{BASE_FOLDER}' <span style='color:red;'>*</span>
-    </div>
-    """, unsafe_allow_html=True)
+    folder_label = f"Folder name under '{BUCKET_NAME}/{BASE_FOLDER}' <span style='color:red;'>*</span>"
 
-    folder_name = st.text_input("", key="folder_name_input").strip()
+    folder_name = st.text_input(label="", placeholder=folder_label, key="folder_name_input").strip()
+
 
 
     uploaded_files = st.file_uploader(
