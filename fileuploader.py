@@ -113,7 +113,10 @@ def main():
         """
         **Contact:**  
         For any questions or feedback, please email me at  
-        <a href="mailto:abmitra@informatica.com">abmitra@informatica.com</a>
+        <a href="mailto:abmitra@informatica.com">abmitra@informatica.com</a>  
+        <br>
+        Or ping me directly on Microsoft Teams:  
+        <a href="https://teams.microsoft.com/l/chat/0/0?users=abmitra@informatica.com" target="_blank">Chat on Teams</a>
         """,
         unsafe_allow_html=True
     )
