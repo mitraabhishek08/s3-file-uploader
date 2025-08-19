@@ -32,6 +32,24 @@ def list_s3_folders(bucket, prefix):
             folders.append(folder_name)
     return folders
 
+def list_s3_files(bucket, prefix):
+    """List all files under a given S3 prefix."""
+    try:
+        paginator = s3.get_paginator('list_objects_v2')
+        page_iterator = paginator.paginate(Bucket=bucket, Prefix=prefix + '/')
+    except ClientError as e:
+        st.error(f"Failed to list files: {e}")
+        return []
+
+    files = []
+    for page in page_iterator:
+        if 'Contents' in page:
+            for obj in page['Contents']:
+                key = obj['Key']
+                if not key.endswith('/'):  # exclude folder keys
+                    files.append(key)
+    return files
+
 def copy_button(url: str, idx: int):
     button_html = f"""
     <style>
@@ -97,17 +115,17 @@ def upload_to_s3(file, key):
 def main():
     st.title("S3 Media Manager")
 
-    # List folders in sidebar (no selection, just a list)
+    # Fetch existing folders once
     existing_folders = list_s3_folders(BUCKET_NAME, BASE_FOLDER)
 
-    st.sidebar.markdown("### Existing folders")
+    st.sidebar.markdown("### Select folder")
+    selected_folder = st.sidebar.selectbox(
+        "Select a folder:",
+        options=[""] + existing_folders,
+        index=0
+    )
 
-    if existing_folders:
-        for folder in existing_folders:
-            st.sidebar.markdown(f"<span style='color: #1E90FF;'>📁 {folder}</span>", unsafe_allow_html=True)
-    else:
-        st.sidebar.write("No folders found.")
-
+    # Contact info below in sidebar
     st.sidebar.markdown("---")
     st.sidebar.markdown(
         """
@@ -121,13 +139,39 @@ def main():
         unsafe_allow_html=True
     )
 
+    # Synchronize selected folder to text input
     folder_name = st.text_input(
         label="Enter folder name (*):",
+        value=selected_folder,
         help=f"This folder will be created under '{BUCKET_NAME}/{BASE_FOLDER}'.",
         key="folder_name_input"
     ).strip()
 
     st.info("_This folder name will reuse an existing folder if present, or create a new one. If you are going to use the generated url(s) with URL type field, make sure not to use any space in the folder name and/or in the uploaded image name._")
+
+    # Button to load and view existing images
+    view_images = st.button("View Images")
+
+    # Placeholder for existing images
+    images_placeholder = st.empty()
+
+    if view_images:
+        if not folder_name:
+            st.error("Please select or enter a valid folder name to view images.")
+        else:
+            with images_placeholder.container():
+                st.subheader(f"Existing images in folder '{folder_name}':")
+                files = list_s3_files(BUCKET_NAME, f"{BASE_FOLDER}/{folder_name}")
+                if not files:
+                    st.write("No images found in this folder.")
+                else:
+                    for idx, s3_key in enumerate(files):
+                        url = CLOUDFRONT_URL_PREFIX + s3_key
+                        col1, col2 = st.columns([1, 5])
+                        with col1:
+                            st.image(url, width=60)
+                        with col2:
+                            copy_button(url, idx)
 
     uploaded_files = st.file_uploader(
         "Upload one or more images",
@@ -153,16 +197,14 @@ def main():
                 urls.append(url)
 
         if urls:
-          st.success("Upload completed!")
-          st.write("Final URLs:")
-
-          for idx, url in enumerate(urls):
-              col1, col2 = st.columns([1, 5])  # Small column for thumbnail, bigger for URL + copy button
-              with col1:
-                  st.image(url, width=60)  # Display thumbnail with width ~60 px
-              with col2:
-                  copy_button(url, idx)
-
+            st.success("Upload completed!")
+            st.write("Final URLs:")
+            for idx, url in enumerate(urls):
+                col1, col2 = st.columns([1, 5])
+                with col1:
+                    st.image(url, width=60)
+                with col2:
+                    copy_button(url, idx)
 
 if __name__ == "__main__":
     main()
